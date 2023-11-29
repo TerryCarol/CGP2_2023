@@ -10,13 +10,14 @@ GraphicsClass::GraphicsClass()
 	m_D3D = 0;
 	m_Camera = 0;
 	m_Model = 0;
+	m_Terrain = 0;
+	m_Skybox = 0;
 
 	m_LightShader = 0;
 	m_Light = 0;
 
 	m_TextureShader = 0;
 	m_Bitmap = 0;
-	m_Terrain = 0;
 
 	m_Text = 0;
 }
@@ -64,21 +65,58 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 //	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);	// for cube
 //	m_Camera->SetPosition(0.0f, 0.5f, -3.0f);	// for chair
 	m_Camera->InitializeCameraPosition();
-		
+
+	//스카이맵 생성
+	m_Skybox = new SkymapClass;
+	if (!m_Skybox)
+	{
+		return false;
+	}
+	
+	//스카이맵 초기화
+	XMFLOAT3 cameraPos = m_Camera->GetPosition();
+	result = m_Skybox->Initialize(m_D3D->GetDevice(), L"./data/skymap.dds", cameraPos);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize skymap object.", L"Error", MB_OK);
+	}
+
+	//Reset sphereWorld
+	sphereWorld = XMMatrixIdentity();
+
+	//Define sphereWorld's world space matrix
+	Scale = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+	//Make sure the sphere is always centered around camera
+	Translation = XMMatrixTranslation(cameraPos.x, cameraPos.y, cameraPos.z);
+
+	//Set sphereWorld's world space using the transformations
+	sphereWorld = Scale * Translation;
+
+	//the loaded models world space
+	meshWorld = XMMatrixIdentity();
+
+	Rotation = XMMatrixRotationY(3.14f);
+	Scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	Translation = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+
+	meshWorld = Rotation * Scale * Translation;
+
+
 	//지형(바닥)을 생성
-	m_Terrain = new TerrainClass;
+	m_Terrain = new ModelClass;
 	if (!m_Terrain)
 	{
 		return false;
 	}
 
 	//지형 초기화
-	result = m_Terrain->Initialize(m_D3D->GetDevice(), L"./data/seafloor.dds", 200, 200);
+	result = m_Terrain->Initialize(m_D3D->GetDevice(), L"./data/ground.obj", L"./data/grass.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize terrain object.", L"Error", MB_OK);
 	}
 	// Create the model object.
+
 	m_Model = new ModelClass;
 	if(!m_Model)
 	{
@@ -159,7 +197,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	//}
 
 	// Initialize a base view matrix with the camera for 2D user interface rendering.
-//	m_Camera->SetPosition(0.0f, 0.0f, -1.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -1.0f);
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
@@ -362,22 +400,66 @@ bool GraphicsClass::Render(float rotation)
 
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
+	m_D3D->TurnZBufferOn();
+
+	//스카이맵 랜더링
+	m_Skybox->Render(m_D3D->GetDeviceContext());
+
+	// Render the terrain using the light shader.
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Skybox->GetIndexCount(),
+		worldMatrix, viewMatrix, projectionMatrix,
+		m_Skybox->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+	//일반 모델 랜더링
+	worldMatrix *= XMMatrixTranslation(0.0f, 1.0f, 0.0f);
+	worldMatrix *= XMMatrixRotationY(rotation);
+
+	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_Model->Render(m_D3D->GetDeviceContext());
+
+	// Render the model using the light shader.
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), 
+		worldMatrix, viewMatrix, projectionMatrix,
+		m_Model->GetTexture(), 
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+	//지형모델 랜더링
+	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	//worldMatrix = XMMatrixScaling(5.0f, 0.01f, 5.0f);
+
+	m_Terrain->Render(m_D3D->GetDeviceContext());
+
+	// Render the terrain using the light shader.
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Terrain->GetIndexCount(),
+		worldMatrix, viewMatrix, projectionMatrix,
+		m_Terrain->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+	if(!result)
+	{
+		return false;
+	}
+
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_D3D->TurnZBufferOff();
 
 	// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = m_Terrain->Render(m_D3D->GetDeviceContext(), 200, 200);
-	if (!result)
-	{
-		return false;
-	}
+	//result = m_Terrain->Render(m_D3D->GetDeviceContext(), 200, 200);
+	//if (!result)
+	//{
+	//	return false;
+	//}
 
 	// Render the bitmap with the texture shader.
-	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_Terrain->GetTexture());
-	if (!result)
-	{
-		return false;
-	}
+	//result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_Terrain->GetTexture());
+	//if (!result)
+	//{
+	//	return false;
+	//}
 
 	// Turn on the alpha blending before rendering the text.
 	m_D3D->TurnOnAlphaBlending();
@@ -394,24 +476,6 @@ bool GraphicsClass::Render(float rotation)
 
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	m_D3D->TurnZBufferOn();
-
-	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	worldMatrix = XMMatrixRotationY(rotation);
-
-	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_Model->Render(m_D3D->GetDeviceContext());
-
-	// Render the model using the light shader.
-	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), 
-		worldMatrix, viewMatrix, projectionMatrix,
-		m_Model->GetTexture(), 
-		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
-		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
-	
-	if(!result)
-	{
-		return false;
-	}
 
 	// Present the rendered scene to the screen.
 	m_D3D->EndScene();

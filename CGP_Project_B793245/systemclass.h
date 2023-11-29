@@ -26,7 +26,7 @@
 #include "cpuclass.h"
 #include "timerclass.h"
 #include "soundclass.h"
-#include "TerrainClass.h"
+#include "skymapclass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: SystemClass

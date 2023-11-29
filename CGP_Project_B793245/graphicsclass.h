@@ -17,7 +17,7 @@
 #include "textureshaderclass.h"
 #include "bitmapclass.h"
 #include "textclass.h"
-#include "terrainclass.h"
+#include "skymapclass.h"
 
 /////////////
 // GLOBALS //
@@ -53,6 +53,19 @@ private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
+	ModelClass* m_Terrain;
+	SkymapClass* m_Skybox;
+
+	int NumSphereVertices;
+	int NumSphereFaces;
+
+	XMMATRIX d2dWorld;
+	XMMATRIX sphereWorld;
+	XMMATRIX meshWorld;
+
+	XMMATRIX Rotation;
+	XMMATRIX Scale;
+	XMMATRIX Translation;
 
 	LightShaderClass* m_LightShader;
 	LightClass* m_Light;
@@ -61,7 +74,6 @@ private:
 	BitmapClass* m_Bitmap;
 
 	TextClass* m_Text;
-	TerrainClass* m_Terrain;
 };
 
 #endif

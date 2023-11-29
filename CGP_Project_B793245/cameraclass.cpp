@@ -105,7 +105,7 @@ void CameraClass::MoveCameraForward()
 
 void CameraClass::InitializeCameraPosition()
 {
-	camPosition = XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f);
+	camPosition = XMVectorSet(0.0f, 1.0f, -10.0f, 0.0f);
 }
 
 // This uses the position and rotation of the camera to build and to update the view matrix.

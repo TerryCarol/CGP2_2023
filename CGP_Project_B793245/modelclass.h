@@ -48,6 +48,11 @@ private:
 		float nx, ny, nz;
 	};
 
+	struct InstanceType
+	{
+		XMFLOAT3 position;
+	};
+
 public:
 	ModelClass();
 	ModelClass(const ModelClass&);
@@ -58,6 +63,7 @@ public:
 	void Render(ID3D11DeviceContext*);
 
 	int GetIndexCount();
+	int GetInstanceCount();
 	ID3D11ShaderResourceView* GetTexture();
 
 	bool LoadModel(const WCHAR*);
@@ -76,8 +82,8 @@ private:
 	bool LoadDataStructures(const WCHAR*, int, int, int, int);
 
 private:
-	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
-	int m_vertexCount, m_indexCount, m_textureCount, m_normalCount, m_faceCount;
+	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer, * m_instanceBuffer;
+	int m_vertexCount, m_indexCount, m_instanceCount, m_textureCount, m_normalCount, m_faceCount;
 	TextureClass* m_Texture;
 
 	ModelType* m_model;
