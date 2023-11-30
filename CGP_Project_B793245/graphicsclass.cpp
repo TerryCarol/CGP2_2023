@@ -10,6 +10,7 @@ GraphicsClass::GraphicsClass()
 	m_D3D = 0;
 	m_Camera = 0;
 	m_Model = 0;
+	m_Model2 = 0;
 	m_Terrain = 0;
 	m_Skybox = 0;
 
@@ -99,6 +100,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	Scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
 	Translation = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 
+	//meshWorld 변수구조체가 왜 따로 있어?
 	meshWorld = Rotation * Scale * Translation;
 
 
@@ -132,6 +134,22 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Create the 2nd model object.
+	m_Model2 = new ModelClass;
+	if (!m_Model2)
+	{
+		return false;
+	}
+
+	// Initialize the model object.
+	result = m_Model2->Initialize(m_D3D->GetDevice(), L"./data/cube.obj", L"./data/seafloor.dds");
+	//	result = m_Model->Initialize(m_D3D->GetDevice(), L"./data/chair.obj", L"./data/chair_d.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize second model object.", L"Error", MB_OK);
+		return false;
+	}
+
 	// Create the light shader object.
 	m_LightShader = new LightShaderClass;
 	if (!m_LightShader)
@@ -155,8 +173,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the light object.
-	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
-//	m_Light->SetAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
+//	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
+	m_Light->SetAmbientColor(0.5f, 0.5f, 0.5f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 //	m_Light->SetDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
 //	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
@@ -263,6 +281,14 @@ void GraphicsClass::Shutdown()
 		m_Model = 0;
 	}
 
+	// Release the model object.
+	if (m_Model2)
+	{
+		m_Model2->Shutdown();
+		delete m_Model2;
+		m_Model2 = 0;
+	}
+
 	// Release the camera object.
 	if(m_Camera)
 	{
@@ -336,7 +362,7 @@ bool GraphicsClass::Frame()
 	return true;
 }
 
-bool GraphicsClass::Frame(int fps, int cpu, int mouseX, int mouseY)
+bool GraphicsClass::Frame(int fps, float cpu, int mouseX, int mouseY)
 {
 	bool result;
 	static float rotation = 0.0f;
@@ -406,7 +432,7 @@ bool GraphicsClass::Render(float rotation)
 	m_Skybox->Render(m_D3D->GetDeviceContext());
 
 	// Render the terrain using the light shader.
-	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Skybox->GetIndexCount(),
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), 0, m_Skybox->GetIndexCount(), 0,
 		worldMatrix, viewMatrix, projectionMatrix,
 		m_Skybox->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
@@ -420,20 +446,34 @@ bool GraphicsClass::Render(float rotation)
 	m_Model->Render(m_D3D->GetDeviceContext());
 
 	// Render the model using the light shader.
-	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), 
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model->getVertexCount(), m_Model->GetIndexCount(), m_Model->GetInstanceCount(),
 		worldMatrix, viewMatrix, projectionMatrix,
 		m_Model->GetTexture(), 
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
 		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 
+	//일반 모델 2 랜더링
+	worldMatrix *= XMMatrixTranslation(0.0f, 2.0f, 0.0f);
+	worldMatrix *= XMMatrixRotationY(-(2*rotation));
+	//월드매트릭스는 말 그대로 월드야 모델별 상대좌표계를 쓰던가 모델 함수로 직접 이동시키는 것이 안전할 것임.
+
+	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_Model2->Render(m_D3D->GetDeviceContext());
+
+	// Render the model using the light shader.
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model2->getVertexCount(), m_Model2->GetIndexCount(), m_Model2->GetInstanceCount(),
+		worldMatrix, viewMatrix, projectionMatrix,
+		m_Model2->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
 	//지형모델 랜더링
 	worldMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-	//worldMatrix = XMMatrixScaling(5.0f, 0.01f, 5.0f);
 
 	m_Terrain->Render(m_D3D->GetDeviceContext());
 
 	// Render the terrain using the light shader.
-	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Terrain->GetIndexCount(),
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), 0, m_Terrain->GetIndexCount(), 0,
 		worldMatrix, viewMatrix, projectionMatrix,
 		m_Terrain->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),

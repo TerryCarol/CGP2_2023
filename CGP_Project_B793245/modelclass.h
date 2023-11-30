@@ -63,6 +63,7 @@ public:
 	void Render(ID3D11DeviceContext*);
 
 	int GetIndexCount();
+	int getVertexCount();
 	int GetInstanceCount();
 	ID3D11ShaderResourceView* GetTexture();
 
@@ -87,6 +88,6 @@ private:
 	TextureClass* m_Texture;
 
 	ModelType* m_model;
-};
-
+}
+;
 #endif

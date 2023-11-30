@@ -41,7 +41,7 @@ public:
 	bool Initialize(int, int, HWND);
 	void Shutdown();
 	bool Frame();
-	bool Frame(int, int, int, int);
+	bool Frame(int, float, int, int);
 	void CameraRotation(float, float);
 	void CameraMovement(char);
 	void SetSyncSpeed(float);
@@ -53,6 +53,7 @@ private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
+	ModelClass* m_Model2;
 	ModelClass* m_Terrain;
 	SkymapClass* m_Skybox;
 

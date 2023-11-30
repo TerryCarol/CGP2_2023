@@ -49,7 +49,7 @@ void LightShaderClass::Shutdown()
 	return;
 }
 
-bool LightShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, 
+bool LightShaderClass::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int indexCount, int instanceCount,
 	XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, 
 	ID3D11ShaderResourceView* texture, 
 	XMFLOAT3 lightDirection, XMFLOAT4 ambientColor, XMFLOAT4 diffuseColor,
@@ -67,7 +67,7 @@ bool LightShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount
 	}
 
 	// Now render the prepared buffers with the shader.
-	RenderShader(deviceContext, indexCount);
+	RenderShader(deviceContext, vertexCount, indexCount, instanceCount);
 
 	return true;
 }
@@ -447,7 +447,7 @@ bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 }
 
 
-void LightShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void LightShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int vertexCount, int indexCount, int instanceCount)
 {
 	// Set the vertex input layout.
 	deviceContext->IASetInputLayout(m_layout);
@@ -460,7 +460,14 @@ void LightShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int inde
 	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
 
 	// Render the triangle.
+	if (instanceCount != 0)
+	{
+		deviceContext->DrawIndexedInstanced(vertexCount, instanceCount, 0, 0, 0);
+	}
+
 	deviceContext->DrawIndexed(indexCount, 0, 0);
+
+
 
 	return;
 }

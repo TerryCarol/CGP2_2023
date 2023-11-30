@@ -1,8 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Filename: textclass.cpp
 ///////////////////////////////////////////////////////////////////////////////
-#include "textclass.h"
+#define _CRT_SECURE_NO_WARNINGS
 
+#include "textclass.h"
+#include <string>
+
+using std::string;
 
 TextClass::TextClass()
 {
@@ -449,7 +453,7 @@ bool TextClass::SetFPS(int fps, ID3D11DeviceContext* deviceContext)
 	return true;
 }
 
-bool TextClass::SetCPU(int cpu, ID3D11DeviceContext* deviceContext)
+bool TextClass::SetCPU(float cpu, ID3D11DeviceContext* deviceContext)
 {
 	char tempString[16];
 	char cpuString[16];
@@ -457,7 +461,8 @@ bool TextClass::SetCPU(int cpu, ID3D11DeviceContext* deviceContext)
 
 
 	// Convert the cpu integer to string format.
-	_itoa_s(cpu, tempString, 10);
+	//_itoa_s(cpu, tempString, 10);
+	strcpy(tempString, std::to_string(cpu).c_str());
 
 	// Setup the cpu string.
 	strcpy_s(cpuString, "CPU= ");
@@ -484,6 +489,7 @@ bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* de
 
 	// Convert the mouseX integer to string format.
 	_itoa_s(mouseX, tempString, 10);
+
 
 	// Setup the mouseX string.
 	strcpy_s(mouseString, "Mouse X = ");

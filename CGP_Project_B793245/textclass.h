@@ -39,7 +39,7 @@ public:
 	void Shutdown();
 	bool Render(ID3D11DeviceContext*, XMMATRIX, XMMATRIX);
 	bool SetFPS(int, ID3D11DeviceContext*);
-	bool SetCPU(int, ID3D11DeviceContext*);
+	bool SetCPU(float, ID3D11DeviceContext*);
 	bool SetMousePosition(int, int, ID3D11DeviceContext*);
 
 private:

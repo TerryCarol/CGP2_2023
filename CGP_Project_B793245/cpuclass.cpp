@@ -82,17 +82,17 @@ void CpuClass::Frame()
 }
 
 
-int CpuClass::GetCpuPercentage()
+float CpuClass::GetCpuPercentage()
 {
-	int usage;
+	float usage;
 
 	if(m_canReadCpu)
 	{
-		usage = (int)m_cpuUsage;
+		usage = (float)m_cpuUsage;
 	}
 	else
 	{
-		usage = 0;
+		usage = 0.0f;
 	}
 
 	return usage;

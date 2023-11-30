@@ -2,6 +2,7 @@
 // Filename: terrainclass.cpp
 ////////////////////////////////////////////////////////////////////////////////
 #include "skymapclass.h"
+#include "DDSTextureLoader.h"
 #include <vector>
 
 SkymapClass::SkymapClass()
@@ -174,7 +175,8 @@ bool SkymapClass::CreateSphere(ID3D11Device* device, int LatLines, int LongLines
 	std::vector<VertexType> vertices(NumSphereVertices);
 
 	XMVECTOR currVertPos;
-	currVertPos = XMVectorSet(skymapPosition.x, skymapPosition.y, skymapPosition.z, 0);
+	currVertPos = XMVectorSet(0.0f, 0.0f, 1.0f, 0);
+	//currVertPos = XMVectorSet(skymapPosition.x, skymapPosition.y, skymapPosition.z, 0);
 
 	vertices[0].position.x = 0.0f;
 	vertices[0].position.y = 0.0f;
@@ -285,7 +287,7 @@ bool SkymapClass::CreateSphere(ID3D11Device* device, int LatLines, int LongLines
 
 	D3D11_SUBRESOURCE_DATA iinitData;
 
-	iinitData.pSysMem = &indices[0];
+	iinitData.pSysMem = &indices[0];	
 
 	if (FAILED(device->CreateBuffer(&indexBufferDesc, &iinitData, &sphereIndexBuffer)))
 	{
@@ -350,6 +352,48 @@ bool SkymapClass::LoadTexture(ID3D11Device* device, const WCHAR* filename)
 	{
 		return false;
 	}
+
+	//ID3D11Texture2D* SMTexture = 0;
+	//result = CreateDDSTextureFromFileEx(device, L"skymap.dds", 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE,
+	//	0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, (ID3D11Resource**)&SMTexture, nullptr);
+	//
+	//D3D11_TEXTURE2D_DESC SMTextureDesc;
+	//SMTexture->GetDesc(&SMTextureDesc);
+
+	//D3D11_SHADER_RESOURCE_VIEW_DESC SMViewDesc;
+	//SMViewDesc.Format = SMTextureDesc.Format;
+	//SMViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	//SMViewDesc.TextureCube.MipLevels = SMTextureDesc.MipLevels;
+	//SMViewDesc.TextureCube.MostDetailedMip = 0;
+
+	//result = device->CreateShaderResourceView(SMTexture, &SMViewDesc, &smrv);
+
+	//D3D11_SAMPLER_DESC sampDesc;
+	//ZeroMemory(&sampDesc, sizeof(sampDesc));
+	//sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	//sampDesc.MinLOD = 0;
+	//sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	//// Create the Sample State
+	//result = device->CreateSamplerState(&sampDesc, &CubesTexSamplerState);
+
+	//result->CreateBlendState(&blendDesc, &Transparency);
+
+	//D3D11_RASTERIZER_DESC cmdesc;
+
+	//ZeroMemory(&cmdesc, sizeof(D3D11_RASTERIZER_DESC));
+	//cmdesc.FillMode = D3D11_FILL_SOLID;
+	//cmdesc.CullMode = D3D11_CULL_BACK;
+	//cmdesc.FrontCounterClockwise = true;
+	//result = device->CreateRasterizerState(&cmdesc, &CCWcullMode);
+
+	//cmdesc.FrontCounterClockwise = false;
+
+	//result = device->CreateRasterizerState(&cmdesc, &CWcullMode);
 
 	return true;
 }

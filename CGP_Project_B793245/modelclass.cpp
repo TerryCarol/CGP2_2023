@@ -14,6 +14,7 @@ ModelClass::ModelClass()
 	m_textureCount = 0;
 	m_normalCount = 0;
 	m_faceCount = 0;
+	m_instanceCount = 0;
 }
 
 
@@ -88,6 +89,11 @@ int ModelClass::GetIndexCount()
 int ModelClass::GetInstanceCount()
 {
 	return m_instanceCount;
+}
+
+int ModelClass::getVertexCount()
+{
+	return m_vertexCount;
 }
 
 ID3D11ShaderResourceView* ModelClass::GetTexture()
@@ -187,10 +193,10 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	}
 
 	// 데이터로 인스턴스 배열을 로드합니다.
-	instances[0].position = XMFLOAT3(-1.5f, -1.5f, 5.0f);
-	instances[1].position = XMFLOAT3(-1.5f, 1.5f, 5.0f);
-	instances[2].position = XMFLOAT3(1.5f, -1.5f, 5.0f);
-	instances[3].position = XMFLOAT3(1.5f, 1.5f, 5.0f);
+	instances[0].position = XMFLOAT3(-5.5f, -5.5f, 0.0f);
+	instances[1].position = XMFLOAT3(-5.5f, 5.5f, 0.0f);
+	instances[2].position = XMFLOAT3(5.5f, -5.5f, 0.0f);
+	instances[3].position = XMFLOAT3(5.5f, 5.5f, 0.0f);
 
 	// 인스턴스 버퍼의 설명을 설정합니다.
 	D3D11_BUFFER_DESC instanceBufferDesc;

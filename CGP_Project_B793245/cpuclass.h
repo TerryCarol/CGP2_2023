@@ -30,7 +30,7 @@ public:
 	void Initialize();
 	void Shutdown();
 	void Frame();
-	int GetCpuPercentage();
+	float GetCpuPercentage();
 
 private:
 	bool m_canReadCpu;
