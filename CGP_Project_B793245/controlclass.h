@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Filename: cameraclass.h
+// Filename: controlclass.h
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef _CAMERACLASS_H_
-#define _CAMERACLASS_H_
+#ifndef _CONTROLCLASS_H_
+#define _CONTROLCLASS_H_
 
 
 //////////////
@@ -14,39 +14,35 @@
 
 using namespace DirectX;
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: CameraClass
 ////////////////////////////////////////////////////////////////////////////////
-class CameraClass : public AlignedAllocationPolicy<16>
+class ControlClass : public AlignedAllocationPolicy<16>
 {
 public:
-	CameraClass();
-	CameraClass(const CameraClass&);
-	~CameraClass();
+	ControlClass();
+	ControlClass(const ControlClass&);
+	~ControlClass();
 
 	void SetPosition(float, float, float);
 	void SetRotation(float, float, float);
-	void InitializeCameraPosition();
+	void InitializePosition(XMMATRIX);
 	void SetSyncSpeed(float);
-	void MoveCameraLeft();
-	void MoveCameraRight();
-	void MoveCameraForward();
-	void MoveCameraBack();
-	void SetYaw(float);
-	void SetPitch(float);
+	void TurnLeft();
+	void TurnRight();
+	void MoveForward();
+	void MoveBack();
 
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetRotation();
-	XMFLOAT3 GetCamTargetPoint();
 
-	void Render();
-	void GetViewMatrix(XMMATRIX&);
+	void UpdatePlayer();
 
 private:
-	XMFLOAT3 m_targetPoint;
 	XMFLOAT3 m_position;
 	XMFLOAT3 m_rotation;
-	XMMATRIX m_viewMatrix;
+	XMMATRIX m_localMatrix;
 };
 
 #endif

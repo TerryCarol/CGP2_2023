@@ -54,6 +54,8 @@ private:
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
 	ModelClass* m_Model2;
+	ModelClass* m_PlayerModel;
+	ModelClass* m_PlayerTurretModel;
 	ModelClass* m_Terrain;
 	SkymapClass* m_Skybox;
 

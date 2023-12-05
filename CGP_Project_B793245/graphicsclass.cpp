@@ -9,10 +9,14 @@ GraphicsClass::GraphicsClass()
 {
 	m_D3D = 0;
 	m_Camera = 0;
-	m_Model = 0;
-	m_Model2 = 0;
+
 	m_Terrain = 0;
 	m_Skybox = 0;
+
+	m_Model = 0;
+	m_Model2 = 0;
+	m_PlayerModel = 0;
+	m_PlayerTurretModel = 0;
 
 	m_LightShader = 0;
 	m_Light = 0;
@@ -63,8 +67,6 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Set the initial position of the camera.
-//	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);	// for cube
-//	m_Camera->SetPosition(0.0f, 0.5f, -3.0f);	// for chair
 	m_Camera->InitializeCameraPosition();
 
 	//스카이맵 생성
@@ -117,33 +119,61 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	{
 		MessageBox(hwnd, L"Could not initialize terrain object.", L"Error", MB_OK);
 	}
-	// Create the model object.
 
+	// 플레이어 차체 모델 오브젝트 생성
+	m_PlayerModel = new ModelClass;
+	if (!m_PlayerModel)
+	{
+		return false;
+	}
+
+	// 플레이어 차체 모델 초기화
+	result = m_PlayerModel->Initialize(m_D3D->GetDevice(), L"./data/tank_hull.obj", L"./data/color-palette.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// 플레이어 포탑 모델 오브젝트 생성
+	m_PlayerTurretModel = new ModelClass;
+	if (!m_PlayerTurretModel)
+	{
+		return false;
+	}
+
+	// 플레이어 포탑 모델 초기화
+	result = m_PlayerTurretModel->Initialize(m_D3D->GetDevice(), L"./data/tank_turret.obj", L"./data/color-palette.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// 모델 오브젝트 생성
 	m_Model = new ModelClass;
 	if(!m_Model)
 	{
 		return false;
 	}
 
-	// Initialize the model object.
-	result = m_Model->Initialize(m_D3D->GetDevice(), L"./data/cube.obj", L"./data/seafloor.dds");
-//	result = m_Model->Initialize(m_D3D->GetDevice(), L"./data/chair.obj", L"./data/chair_d.dds");
+	// 모델 초기화
+	result = m_Model->Initialize(m_D3D->GetDevice(), L"./data/tank_edited_2.obj", L"./data/color-palette.dds");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
 		return false;
 	}
 
-	// Create the 2nd model object.
+	// 모델 2 오브젝트 생성
 	m_Model2 = new ModelClass;
 	if (!m_Model2)
 	{
 		return false;
 	}
 
-	// Initialize the model object.
-	result = m_Model2->Initialize(m_D3D->GetDevice(), L"./data/cube.obj", L"./data/seafloor.dds");
-	//	result = m_Model->Initialize(m_D3D->GetDevice(), L"./data/chair.obj", L"./data/chair_d.dds");
+	// 모델 2 초기화
+	result = m_Model2->Initialize(m_D3D->GetDevice(), L"./data/tank_edited_2.obj", L"./data/color-palette.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize second model object.", L"Error", MB_OK);
@@ -273,7 +303,23 @@ void GraphicsClass::CameraMovement(char input)
 
 void GraphicsClass::Shutdown()
 {
-	// Release the model object.
+	// 플레이어 모델
+	if (m_PlayerModel)
+	{
+		m_PlayerModel->Shutdown();
+		delete m_PlayerModel;
+		m_PlayerModel = 0;
+	}
+
+	// 플레이어 터렛 모델
+	if (m_PlayerTurretModel)
+	{
+		m_PlayerTurretModel->Shutdown();
+		delete m_PlayerTurretModel;
+		m_PlayerTurretModel = 0;
+	}
+
+	// 모델1
 	if(m_Model)
 	{
 		m_Model->Shutdown();
@@ -281,7 +327,7 @@ void GraphicsClass::Shutdown()
 		m_Model = 0;
 	}
 
-	// Release the model object.
+	// 모델2
 	if (m_Model2)
 	{
 		m_Model2->Shutdown();
@@ -410,7 +456,8 @@ bool GraphicsClass::Frame(int fps, float cpu, int mouseX, int mouseY)
 
 bool GraphicsClass::Render(float rotation)
 {
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, tempMatrix, translateMatrix;
+	XMFLOAT3 tempFloat;
 	bool result;
 	
 	// Clear the buffers to begin the scene.
@@ -423,10 +470,11 @@ bool GraphicsClass::Render(float rotation)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetWorldMatrix(worldMatrix);
 	m_D3D->GetProjectionMatrix(projectionMatrix);
-
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
-	m_D3D->TurnZBufferOn();
+	// 구의 위치로 변환합니다.
+	translateMatrix = XMMatrixTranslation(-5.0f, 1.0f, 5.0f);
+	worldMatrix = XMMatrixMultiply(worldMatrix, translateMatrix);
 
 	//스카이맵 랜더링
 	m_Skybox->Render(m_D3D->GetDeviceContext());
@@ -438,23 +486,59 @@ bool GraphicsClass::Render(float rotation)
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
 		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 
-	//일반 모델 랜더링
-	worldMatrix *= XMMatrixTranslation(0.0f, 1.0f, 0.0f);
-	worldMatrix *= XMMatrixRotationY(rotation);
+	// 플레이어 모델 렌더링
+	tempFloat = m_Camera->GetPosition();
+
+	tempMatrix = XMMatrixTranslation(2.0f * (tempFloat.x + (0.0f)), 2.0f * (tempFloat.y + (-2.0f)), 2.0f * (tempFloat.z + (-0.0f)));
+	tempMatrix *= XMMatrixScaling(0.5f, 0.5f, 0.5f);
+
+	// 플레이어 모델 버퍼 할당
+	m_PlayerModel->Render(m_D3D->GetDeviceContext());
+
+	// 플레이어 모델 셰이더 호출
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_PlayerModel->getVertexCount(), m_PlayerModel->GetIndexCount(), m_PlayerModel->GetInstanceCount(),
+		tempMatrix, viewMatrix, projectionMatrix,
+		m_PlayerModel->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+	// 플레이어 터렛 모델 렌더링
+	tempFloat = m_Camera->GetPosition();
+
+	tempMatrix = XMMatrixTranslation(2.0f * (tempFloat.x + (0.0f)), 2.0f * (tempFloat.y + (-2.0f)), 2.0f * (tempFloat.z + (-0.0f)));
+	tempMatrix *= XMMatrixScaling(0.5f, 0.5f, 0.5f);
+	
+
+	// 플레이어 터렛 모델 버퍼 할당
+	m_PlayerTurretModel->Render(m_D3D->GetDeviceContext());
+
+	// 플레이어 터렛 모델 셰이더 호출
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_PlayerTurretModel->getVertexCount(), m_PlayerTurretModel->GetIndexCount(), m_PlayerTurretModel->GetInstanceCount(),
+		tempMatrix, viewMatrix, projectionMatrix,
+		m_PlayerTurretModel->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+	// 모델 1 렌더링
+	tempMatrix = worldMatrix;
+	tempMatrix *= XMMatrixTranslation(-2.0f, 0.0f, 1.0f);
+	tempMatrix *= XMMatrixScaling(0.5f, 0.5f, 0.5f);
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_Model->Render(m_D3D->GetDeviceContext());
 
 	// Render the model using the light shader.
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model->getVertexCount(), m_Model->GetIndexCount(), m_Model->GetInstanceCount(),
-		worldMatrix, viewMatrix, projectionMatrix,
+		tempMatrix, viewMatrix, projectionMatrix,
 		m_Model->GetTexture(), 
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
 		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 
-	//일반 모델 2 랜더링
-	worldMatrix *= XMMatrixTranslation(0.0f, 2.0f, 0.0f);
-	worldMatrix *= XMMatrixRotationY(-(2*rotation));
+	// 모델 2 렌더링
+	tempMatrix = worldMatrix;
+	tempMatrix *= XMMatrixTranslation(4.0f, 0.0f, 5.0f);
+	tempMatrix *= XMMatrixRotationY(100.0f);
+	tempMatrix *= XMMatrixScaling(0.5f, 0.5f, 0.5f);
 	//월드매트릭스는 말 그대로 월드야 모델별 상대좌표계를 쓰던가 모델 함수로 직접 이동시키는 것이 안전할 것임.
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
@@ -462,7 +546,7 @@ bool GraphicsClass::Render(float rotation)
 
 	// Render the model using the light shader.
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), m_Model2->getVertexCount(), m_Model2->GetIndexCount(), m_Model2->GetInstanceCount(),
-		worldMatrix, viewMatrix, projectionMatrix,
+		tempMatrix, viewMatrix, projectionMatrix,
 		m_Model2->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
 		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
@@ -483,6 +567,9 @@ bool GraphicsClass::Render(float rotation)
 	{
 		return false;
 	}
+
+	// 월드 행렬을 재설정합니다.
+	m_D3D->GetWorldMatrix(worldMatrix);
 
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_D3D->TurnZBufferOff();

@@ -106,6 +106,8 @@ private:
 	ID3D10Blob* SKYMAP_VS_Buffer;
 	ID3D10Blob* SKYMAP_PS_Buffer;
 
+	ID3D11ShaderResourceView* smrv;
+
 	TextureClass* m_Texture;
 	SkyboxType* m_skybox;
 };

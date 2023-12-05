@@ -309,12 +309,18 @@ void SkymapClass::ShutdownBuffers()
 		SKYMAP_VS_Buffer->Release();
 		SKYMAP_VS_Buffer = 0;
 	}
+	SKYMAP_VS->Release();
+	SKYMAP_VS = 0;
 
 	if (SKYMAP_PS)
 	{
 		SKYMAP_PS_Buffer->Release();
 		SKYMAP_PS_Buffer = 0;
 	}
+	SKYMAP_PS->Release();
+	SKYMAP_PS = 0;
+
+	smrv->Release();
 }
 
 void SkymapClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
@@ -326,7 +332,7 @@ void SkymapClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 	deviceContext->IASetIndexBuffer(sphereIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	//deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 }
 
 int SkymapClass::GetIndexCount()

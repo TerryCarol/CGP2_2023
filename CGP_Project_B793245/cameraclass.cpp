@@ -9,7 +9,7 @@ XMMATRIX rotationMatrix;
 
 XMVECTOR camPosition;
 XMVECTOR camTarget;
-XMVECTOR camUp;
+XMVECTOR camUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 XMVECTOR DefaultForward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 XMVECTOR DefaultRight = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 XMVECTOR camForward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
@@ -58,9 +58,15 @@ void CameraClass::SetRotation(float x, float y, float z)
 	m_rotation.z = z;
 }
 
+XMFLOAT3 CameraClass::GetCamTargetPoint() {
+	XMStoreFloat3(&m_targetPoint, camTarget);
+	return m_targetPoint;
+}
+
 
 XMFLOAT3 CameraClass::GetPosition()
 {
+	XMStoreFloat3(&m_position, camPosition);
 	return m_position;
 }
 
@@ -82,7 +88,7 @@ void CameraClass::SetPitch(float newPitch)
 
 void CameraClass::SetSyncSpeed(float syncSpeed)
 {
-	speed = syncSpeed;
+	speed = syncSpeed / 2;
 }
 
 void CameraClass::MoveCameraLeft()
@@ -105,7 +111,8 @@ void CameraClass::MoveCameraForward()
 
 void CameraClass::InitializeCameraPosition()
 {
-	camPosition = XMVectorSet(0.0f, 1.0f, -10.0f, 0.0f);
+	SetPosition(0.0f, 2.0f, -10.0f);
+	camPosition = XMVectorSet(m_position.x, m_position.y, m_position.z, 0.0f);
 }
 
 // This uses the position and rotation of the camera to build and to update the view matrix.
@@ -116,21 +123,28 @@ void CameraClass::Render()
 	camTarget = XMVector3TransformCoord(DefaultForward, camRotationMatrix);
 	camTarget = XMVector3Normalize(camTarget);
 
-	// Free-Look Camera
-	camRight = XMVector3TransformCoord(DefaultRight, camRotationMatrix);
-	camForward = XMVector3TransformCoord(DefaultForward, camRotationMatrix);
-	camUp = XMVector3Cross(camForward, camRight);
-	///////////////**************new**************////////////////////
+	XMMATRIX RotateYTempMatrix;
+	RotateYTempMatrix = XMMatrixRotationY(yaw);
 
+	// Free-Look 에서 고도 조정 제한한 카메라
+	camRight = XMVector3TransformCoord(DefaultRight, RotateYTempMatrix);
+	camForward = XMVector3TransformCoord(DefaultForward, RotateYTempMatrix);
+	camUp = XMVector3TransformCoord(camUp, RotateYTempMatrix);
+	//camUp = XMVector3Cross(camForward, camRight);
+	///////////////**************new**************////////////////////
+	
 	camPosition += moveLeftRight * camRight;
 	camPosition += moveBackForward * camForward;
 
 	moveLeftRight = 0.0f;
 	moveBackForward = 0.0f;
 
-	camTarget = camPosition + camTarget;
+	camPosition -= 4.0f * camForward;
 
+	camTarget = camPosition + camTarget;
 	m_viewMatrix = XMMatrixLookAtLH(camPosition, camTarget, camUp);
+
+	camPosition += 4.0f * camForward;
 
 	return;
 }
