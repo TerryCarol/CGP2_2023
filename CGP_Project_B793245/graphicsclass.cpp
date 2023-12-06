@@ -77,33 +77,32 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 	
 	//스카이맵 초기화
-	XMFLOAT3 cameraPos = m_Camera->GetPosition();
-	result = m_Skybox->Initialize(m_D3D->GetDevice(), L"./data/skymap.dds", cameraPos);
+	result = m_Skybox->Initialize(m_D3D->GetDevice(), (WCHAR*)L"./data/skymap.dds", 10, 10);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize skymap object.", L"Error", MB_OK);
 	}
 
-	//Reset sphereWorld
-	sphereWorld = XMMatrixIdentity();
+	////Reset sphereWorld
+	//sphereWorld = XMMatrixIdentity();
 
-	//Define sphereWorld's world space matrix
-	Scale = XMMatrixScaling(5.0f, 5.0f, 5.0f);
-	//Make sure the sphere is always centered around camera
-	Translation = XMMatrixTranslation(cameraPos.x, cameraPos.y, cameraPos.z);
+	////Define sphereWorld's world space matrix
+	//Scale = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+	////Make sure the sphere is always centered around camera
+	//Translation = XMMatrixTranslation(cameraPos.x, cameraPos.y, cameraPos.z);
 
-	//Set sphereWorld's world space using the transformations
-	sphereWorld = Scale * Translation;
+	////Set sphereWorld's world space using the transformations
+	//sphereWorld = Scale * Translation;
 
-	//the loaded models world space
-	meshWorld = XMMatrixIdentity();
+	////the loaded models world space
+	//meshWorld = XMMatrixIdentity();
 
-	Rotation = XMMatrixRotationY(3.14f);
-	Scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-	Translation = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	//Rotation = XMMatrixRotationY(3.14f);
+	//Scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	//Translation = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 
-	//meshWorld 변수구조체가 왜 따로 있어?
-	meshWorld = Rotation * Scale * Translation;
+	////meshWorld 변수구조체가 왜 따로 있어?
+	//meshWorld = Rotation * Scale * Translation;
 
 
 	//지형(바닥)을 생성
@@ -476,15 +475,23 @@ bool GraphicsClass::Render(float rotation)
 	translateMatrix = XMMatrixTranslation(-5.0f, 1.0f, 5.0f);
 	worldMatrix = XMMatrixMultiply(worldMatrix, translateMatrix);
 
-	//스카이맵 랜더링
-	m_Skybox->Render(m_D3D->GetDeviceContext());
+	m_D3D->TurnOffCulling();
+	m_D3D->TurnDSLessEqualOn();
 
-	// Render the terrain using the light shader.
-	result = m_LightShader->Render(m_D3D->GetDeviceContext(), 0, m_Skybox->GetIndexCount(), 0,
-		worldMatrix, viewMatrix, projectionMatrix,
-		m_Skybox->GetTexture(),
-		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
-		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+	m_D3D->GetWorldMatrix(worldMatrix_skymap);
+	XMFLOAT3 cameraPos = m_Camera->GetPosition();
+
+	scaleMatrix_skymap = XMMatrixScaling(100.0f, 100.0f, 100.0f);
+	transMatrix_skymap = XMMatrixTranslation(cameraPos.x, cameraPos.y - 10.0f, cameraPos.z);
+	rotateMatrix_skymap = XMMatrixRotationY(256 * 0.0174532925f);
+
+	worldMatrix_skymap = scaleMatrix_skymap * rotateMatrix_skymap * transMatrix_skymap;
+
+	//스카이맵 랜더링
+	m_Skybox->Render(m_D3D->GetDeviceContext(), worldMatrix_skymap, viewMatrix, projectionMatrix);
+
+	m_D3D->TurnDSLessEqualOff();
+	m_D3D->TurnOnCulling();
 
 	// 플레이어 모델 렌더링
 	tempFloat = m_Camera->GetPosition();

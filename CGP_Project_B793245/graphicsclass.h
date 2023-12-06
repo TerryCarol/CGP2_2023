@@ -66,6 +66,11 @@ private:
 	XMMATRIX sphereWorld;
 	XMMATRIX meshWorld;
 
+	XMMATRIX worldMatrix_skymap;
+	XMMATRIX transMatrix_skymap;
+	XMMATRIX scaleMatrix_skymap;
+	XMMATRIX rotateMatrix_skymap;
+
 	XMMATRIX Rotation;
 	XMMATRIX Scale;
 	XMMATRIX Translation;

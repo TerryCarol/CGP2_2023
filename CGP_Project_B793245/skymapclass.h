@@ -1,115 +1,90 @@
-////////////////////////////////////////////////////////////////////////////////
-// Filename: terrainclass.h
-////////////////////////////////////////////////////////////////////////////////
-#ifndef _TERRAINCLASS_H_
-#define _TERRAINCLASS_H_
+//////////////////////////////////////////////////////////////////////////////////
+//// Filename: skymapclass.h
+//////////////////////////////////////////////////////////////////////////////////
 
-//////////////
-// INCLUDES //
-//////////////
+#ifndef _SKYMAPCLASS_H_
+#define _SKYMAPCLASS_H_
+
+
 #include <d3d11.h>
-#include <DirectXMath.h>
+#include <directxmath.h>
+#include <d3dcompiler.h>
+#include <vector>
 
-///////////////////////
-// MY CLASS INCLUDES //
-///////////////////////
-#include "d3dclass.h"
+using namespace DirectX;
+
 #include "textureclass.h"
-#include "modelclass.h"
+#include "DirectXTex.h"
+#include "DDSTextureLoader.h"
 
-////////////////////////////////////////////////////////////////////////////////
-// Class name: SkymapClass
-////////////////////////////////////////////////////////////////////////////////
+#include <fstream>
+
 class SkymapClass
 {
 private:
-	struct VertexType
+
+	struct Vertex	//Overloaded Vertex Structure
 	{
-		VertexType() {}
-		VertexType(float x, float y, float z,
+		Vertex() {}
+		Vertex(float x, float y, float z,
 			float u, float v,
-			float nx, float ny, float nz,
-			float tx, float ty, float tz)
-			: position(x, y, z), texture(u, v), normal(nx, ny, nz),
-			tangent(tx, ty, tz) {}
+			float nx, float ny, float nz)
+			: pos(x, y, z), texCoord(u, v), normal(nx, ny, nz) {}
 
-		XMFLOAT3 position;
-		XMFLOAT2 texture;
+		XMFLOAT3 pos;
+		XMFLOAT2 texCoord;
 		XMFLOAT3 normal;
-		///////////////**************new**************////////////////////
-		XMFLOAT3 tangent;
-		XMFLOAT3 biTangent;
-		///////////////**************new**************////////////////////
-	};
-
-	struct SkyboxType
-	{
-		float x, y, z;
-		float tu, tv;
-		float nx, ny, nz;
 	};
 
 	struct cbPerObject
 	{
-		XMMATRIX  WVP;
+		XMMATRIX WVP;
 		XMMATRIX World;
-
-		BOOL hasTexture;
-		//Because of HLSL structure packing, we will use windows BOOL
-		//instead of bool because HLSL packs things into 4 bytes, and
-		//bool is only one byte, where BOOL is 4 bytes
-		BOOL hasNormMap;
-		///////////////**************new**************////////////////////
 	};
 
-	//Create material structure
-	struct SurfaceMaterial
-	{
-		int normMapTexArrayIndex;
-		bool hasNormMap;
-	};
-
+	cbPerObject cbPerObj;
 public:
 	SkymapClass();
 	SkymapClass(const SkymapClass&);
 	~SkymapClass();
 
-	bool Initialize(ID3D11Device*, const WCHAR*, XMFLOAT3);
+	bool Initialize(ID3D11Device*, WCHAR*, int, int);
 	void Shutdown();
-	int GetIndexCount();
-	bool Render(ID3D11DeviceContext*);
-	
-	ID3D11ShaderResourceView* GetTexture();
+	void Render(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX);
 
 private:
+	bool InitializeBuffers(ID3D11Device*, int, int);
 	void ShutdownBuffers();
-	bool InitializeBuffers(ID3D11Device*);
-	bool CreateSphere(ID3D11Device*, int, int, XMFLOAT3);
-	void RenderBuffers(ID3D11DeviceContext*);
-	bool LoadTexture(ID3D11Device*, const WCHAR*);
-	void ReleaseTexture();
+	void RenderBuffers(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX);
 
 private:
-	int NumSphereVertices;
-	int NumSphereFaces;
 
-	XMMATRIX sphereWorld;
+	ID3D11Buffer* cbPerObjectBuffer;
+	ID3D11SamplerState* CubesTexSamplerState;
 
-	XMMATRIX Rotationx;
-	XMMATRIX Rotationz;
-	XMMATRIX Rotationy;
+	ID3D11Buffer* d2dVertBuffer;
+	ID3D11Buffer* d2dIndexBuffer;
+	ID3D11ShaderResourceView* d2dTexture;
 
-	ID3D11Buffer* sphereIndexBuffer = nullptr;
-	ID3D11Buffer* sphereVertBuffer = nullptr;
+	ID3D11Buffer* sphereIndexBuffer;
+	ID3D11Buffer* sphereVertBuffer;
 	ID3D11VertexShader* SKYMAP_VS;
 	ID3D11PixelShader* SKYMAP_PS;
 	ID3D10Blob* SKYMAP_VS_Buffer;
 	ID3D10Blob* SKYMAP_PS_Buffer;
 
+	TextureClass* m_Texture;
+
 	ID3D11ShaderResourceView* smrv;
 
-	TextureClass* m_Texture;
-	SkyboxType* m_skybox;
+	XMMATRIX Rotationx;
+	XMMATRIX Rotationy;
+
+public:
+	int NumSphereVertices;
+	int NumSphereFaces;
+
+	XMMATRIX WVP;
 };
 
 #endif

@@ -129,8 +129,8 @@ void CameraClass::Render()
 	// Free-Look 에서 고도 조정 제한한 카메라
 	camRight = XMVector3TransformCoord(DefaultRight, RotateYTempMatrix);
 	camForward = XMVector3TransformCoord(DefaultForward, RotateYTempMatrix);
-	camUp = XMVector3TransformCoord(camUp, RotateYTempMatrix);
-	//camUp = XMVector3Cross(camForward, camRight);
+	//camUp = XMVector3TransformCoord(camUp, RotateYTempMatrix);
+	camUp = XMVector3Cross(camForward, camRight);
 	///////////////**************new**************////////////////////
 	
 	camPosition += moveLeftRight * camRight;

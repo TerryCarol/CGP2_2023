@@ -14,6 +14,8 @@
 
 #include <fstream>
 
+#include "DDSTextureLoader.h"
+
 using namespace std;
 using namespace DirectX;
 

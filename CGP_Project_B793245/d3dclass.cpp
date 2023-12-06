@@ -18,6 +18,7 @@ D3DClass::D3DClass()
 	m_depthStencilState = 0;
 	m_depthStencilView = 0;
 	m_rasterState = 0;
+	m_rasterStateNoCulling = 0;
 
 	m_depthDisabledStencilState = 0;
 
@@ -292,6 +293,18 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		return false;
 	}
 
+	D3D11_DEPTH_STENCIL_DESC dssDesc;
+	ZeroMemory(&dssDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	dssDesc.DepthEnable = true;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dssDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+	result = m_device->CreateDepthStencilState(&dssDesc, &DSLessEqual);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 	// Set the depth stencil state.
 	m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
 
@@ -328,6 +341,24 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// Create the rasterizer state from the description we just filled out.
 	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterState);
 	if(FAILED(result))
+	{
+		return false;
+	}
+
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+	// Create the rasterizer state from the description we just filled out.
+	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterStateNoCulling);
+	if (FAILED(result))
 	{
 		return false;
 	}
@@ -622,5 +653,25 @@ void D3DClass::TurnOffAlphaBlending()
 	// Turn off the alpha blending.
 	m_deviceContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
 
+	return;
+}
+
+void D3DClass::TurnOnCulling() {
+	m_deviceContext->RSSetState(m_rasterState);
+}
+
+void D3DClass::TurnOffCulling() {
+	m_deviceContext->RSSetState(m_rasterStateNoCulling);
+}
+
+void D3DClass::TurnDSLessEqualOn()
+{
+	m_deviceContext->OMSetDepthStencilState(DSLessEqual, 0);
+	return;
+}
+
+void D3DClass::TurnDSLessEqualOff()
+{
+	m_deviceContext->OMSetDepthStencilState(NULL, 0);
 	return;
 }
