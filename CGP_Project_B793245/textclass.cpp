@@ -17,6 +17,7 @@ TextClass::TextClass()
 	m_sentence2 = 0;
 	m_sentence3 = 0;
 	m_sentence4 = 0;
+	m_sentence5 = 0;
 }
 
 
@@ -98,6 +99,12 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 		return false;
 	}
 
+	result = InitializeSentence(&m_sentence5, 16, device);
+	if (!result)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -109,6 +116,7 @@ void TextClass::Shutdown()
 	ReleaseSentence(&m_sentence2);
 	ReleaseSentence(&m_sentence3);
 	ReleaseSentence(&m_sentence4);
+	ReleaseSentence(&m_sentence5);
 
 	// Release the font shader object.
 	if(m_FontShader)
@@ -155,6 +163,12 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 	}
 
 	result = RenderSentence(deviceContext, m_sentence4, worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	result = RenderSentence(deviceContext, m_sentence5, worldMatrix, orthoMatrix);
 	if (!result)
 	{
 		return false;
@@ -496,7 +510,7 @@ bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* de
 	strcat_s(mouseString, tempString);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence3, mouseString, 20, 60, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(m_sentence3, mouseString, 20, 80, 1.0f, 1.0f, 1.0f, deviceContext);
 	if (!result)
 	{
 		return false;
@@ -510,7 +524,37 @@ bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* de
 	strcat_s(mouseString, tempString);
 
 	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence4, mouseString, 20, 80, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(m_sentence4, mouseString, 20, 100, 1.0f, 1.0f, 1.0f, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool TextClass::SetResolutionSize(ID3D11DeviceContext* deviceContext)
+{
+	char tempString[16];
+	char resolutionString[16];
+	bool result;
+
+
+	// Convert the cpu integer to string format.
+	//_itoa_s(m_screenWidth, tempString, 10);
+	strcpy(tempString, std::to_string(m_screenWidth).c_str());
+
+	// Setup the cpu string.
+	strcpy_s(resolutionString, "RES= ");
+	strcat_s(resolutionString, tempString);
+	strcat_s(resolutionString, "x");
+
+	strcpy(tempString, std::to_string(m_screenHeight).c_str());
+	strcat_s(resolutionString, tempString);
+
+
+	// Update the sentence vertex buffer with the new string information.
+	result = UpdateSentence(m_sentence5, resolutionString, 20, 60, 0.0f, 1.0f, 0.0f, deviceContext);
 	if (!result)
 	{
 		return false;

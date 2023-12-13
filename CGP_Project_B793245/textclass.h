@@ -41,6 +41,7 @@ public:
 	bool SetFPS(int, ID3D11DeviceContext*);
 	bool SetCPU(float, ID3D11DeviceContext*);
 	bool SetMousePosition(int, int, ID3D11DeviceContext*);
+	bool SetResolutionSize(ID3D11DeviceContext*);
 
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);
@@ -57,7 +58,7 @@ private:
 	SentenceType* m_sentence2;
 	SentenceType* m_sentence3;
 	SentenceType* m_sentence4;
-
+	SentenceType* m_sentence5;
 };
 
 #endif

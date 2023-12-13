@@ -12,6 +12,9 @@ SystemClass::SystemClass()
 	m_Cpu = 0;
 	m_Timer = 0;
 	m_Sound = 0;
+
+	width = 0;
+	height = 0;
 }
 
 
@@ -352,6 +355,8 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
 	}
 
+	SetScreenResolution(screenWidth, screenHeight);
+
 	// Create the window with the screen settings and get the handle to it.
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName, 
 						    WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
@@ -368,6 +373,18 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	return;
 }
 
+void SystemClass::SetScreenResolution(int w, int h) {
+	width = w;
+	height = h;
+}
+
+int SystemClass::GetScreenResolutionW() {
+	return width;
+}
+
+int SystemClass::GetScreenResolutionH() {
+	return height;
+}
 
 void SystemClass::ShutdownWindows()
 {

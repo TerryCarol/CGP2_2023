@@ -77,7 +77,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 	
 	//스카이맵 초기화
-	result = m_Skybox->Initialize(m_D3D->GetDevice(), (WCHAR*)L"./data/skymap.dds", 10, 10);
+	result = m_Skybox->Initialize(m_D3D->GetDevice(), (WCHAR*)L"./data/mountain_skymap.dds", 10, 10);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize skymap object.", L"Error", MB_OK);
@@ -420,6 +420,13 @@ bool GraphicsClass::Frame(int fps, float cpu, int mouseX, int mouseY)
 	}
 
 	// Set the frames per second.
+	result = m_Text->SetResolutionSize(m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set the frames per second.
 	result = m_Text->SetFPS(fps, m_D3D->GetDeviceContext());
 	if (!result)
 	{
@@ -528,7 +535,7 @@ bool GraphicsClass::Render(float rotation)
 
 	// 모델 1 렌더링
 	tempMatrix = worldMatrix;
-	tempMatrix *= XMMatrixTranslation(-2.0f, 0.0f, 1.0f);
+	tempMatrix *= XMMatrixTranslation(-2.0f, -1.0f, 1.0f);
 	tempMatrix *= XMMatrixScaling(0.5f, 0.5f, 0.5f);
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
@@ -543,7 +550,7 @@ bool GraphicsClass::Render(float rotation)
 
 	// 모델 2 렌더링
 	tempMatrix = worldMatrix;
-	tempMatrix *= XMMatrixTranslation(4.0f, 0.0f, 5.0f);
+	tempMatrix *= XMMatrixTranslation(6.0f, -1.0f, 5.0f);
 	tempMatrix *= XMMatrixRotationY(100.0f);
 	tempMatrix *= XMMatrixScaling(0.5f, 0.5f, 0.5f);
 	//월드매트릭스는 말 그대로 월드야 모델별 상대좌표계를 쓰던가 모델 함수로 직접 이동시키는 것이 안전할 것임.

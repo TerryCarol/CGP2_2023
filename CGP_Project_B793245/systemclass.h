@@ -49,6 +49,10 @@ private:
 	void InitializeWindows(int&, int&);
 	void ShutdownWindows();
 
+	void SetScreenResolution(int w, int h);
+	int GetScreenResolutionW();
+	int GetScreenResolutionH();
+
 private:
 	LPCWSTR m_applicationName;
 	HINSTANCE m_hinstance;
@@ -60,6 +64,9 @@ private:
 	CpuClass* m_Cpu;
 	TimerClass* m_Timer;
 	SoundClass* m_Sound;
+
+	int width;
+	int height;
 };
 
 
